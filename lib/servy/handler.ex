@@ -1,9 +1,9 @@
 defmodule Servy.Handler do
-
   @moduledoc "Handles HTTP requests."
 
   alias Servy.Conv
   alias Servy.BearController
+  alias Servy.VideoCam
 
   @pages_path Path.expand("../../pages", __DIR__)
 
@@ -12,38 +12,68 @@ defmodule Servy.Handler do
 
   @doc "Transforms the request into a response."
   def handle(request) do
-    request 
+    request
     |> parse
     |> rewrite_path
-    #|> log 
-    |> route 
+    # |> log 
+    |> route
     |> track
     |> format_response
   end
 
-  def route(%Conv{ method: "GET", path: "/kaboom" } = conv) do
+  def route(%Conv{method: "GET", path: "/kaboom"} = conv) do
     raise "Kaboom!"
   end
 
-  def route(%Conv{ method: "GET", path: "/hibernate/" <> time } = conv) do
-    time |> String.to_integer |> :timer.sleep
-    
-    %{ conv | status: 200, resp_body: "Awake!" }          
+  def route(%Conv{method: "GET", path: "/hibernate/" <> time} = conv) do
+    time |> String.to_integer() |> :timer.sleep()
+
+    %{conv | status: 200, resp_body: "Awake!"}
   end
 
-  def route(%Conv{ method: "GET", path: "/wildthings" } = conv) do
-    %{ conv | status: 200, resp_body: "Bears, Lions, Tigers" }          
+  def route(%Conv{method: "GET", path: "/snapshots"} = conv) do
+    parent = self()
+    spawn(fn -> send(parent, {:result, VideoCam.get_snapshot("cam-1")}) end)
+    spawn(fn -> send(parent, {:result, VideoCam.get_snapshot("cam-2")}) end)
+    spawn(fn -> send(parent, {:result, VideoCam.get_snapshot("cam-3")}) end)
+
+    snapshot_one =
+      receive do
+        {:result, filename} -> filename
+      end
+
+    snapshot_two =
+      receive do
+        {:result, filename} -> filename
+      end
+
+    snapshot_three =
+      receive do
+        {:result, filename} -> filename
+      end
+
+    # pid_one = spawn(fn -> VideoCam.get_snapshot("cam-1") end)
+    # pid_two = VideoCam.get_snapshot("cam-2")
+    # pid_three = VideoCam.get_snapshot("cam-3")
+
+    snapshots = [snapshot_one, snapshot_two, snapshot_three]
+
+    %{conv | status: 200, resp_body: inspect(snapshots)}
   end
 
-  def route(%Conv{ method: "GET", path: "/api/bears" } = conv) do
+  def route(%Conv{method: "GET", path: "/wildthings"} = conv) do
+    %{conv | status: 200, resp_body: "Bears, Lions, Tigers"}
+  end
+
+  def route(%Conv{method: "GET", path: "/api/bears"} = conv) do
     Servy.Api.BearController.index(conv)
   end
 
-  def route(%Conv{ method: "GET", path: "/bears" } = conv) do
+  def route(%Conv{method: "GET", path: "/bears"} = conv) do
     BearController.index(conv)
   end
 
-  def route(%Conv{ method: "GET", path: "/bears/" <> id } = conv) do
+  def route(%Conv{method: "GET", path: "/bears/" <> id} = conv) do
     params = Map.put(conv.params, "id", id)
     BearController.show(conv, params)
   end
@@ -53,26 +83,26 @@ defmodule Servy.Handler do
   end
 
   def route(%Conv{method: "GET", path: "/about"} = conv) do
-      @pages_path
-      |> Path.join("about.html")
-      |> File.read
-      |> handle_file(conv)
+    @pages_path
+    |> Path.join("about.html")
+    |> File.read()
+    |> handle_file(conv)
   end
 
-  def route(%Conv{ path: path } = conv) do
-    %{ conv | status: 404, resp_body: "No #{path} here!"}
+  def route(%Conv{path: path} = conv) do
+    %{conv | status: 404, resp_body: "No #{path} here!"}
   end
 
   def handle_file({:ok, content}, conv) do
-    %{ conv | status: 200, resp_body: content }
+    %{conv | status: 200, resp_body: content}
   end
 
   def handle_file({:error, :enoent}, conv) do
-    %{ conv | status: 404, resp_body: "File not found!" }
+    %{conv | status: 404, resp_body: "File not found!"}
   end
 
   def handle_file({:error, reason}, conv) do
-    %{ conv | status: 500, resp_body: "File error: #{reason}" }
+    %{conv | status: 500, resp_body: "File error: #{reason}"}
   end
 
   def format_response(%Conv{} = conv) do
@@ -84,6 +114,4 @@ defmodule Servy.Handler do
     #{conv.resp_body}
     """
   end
-
 end
-
