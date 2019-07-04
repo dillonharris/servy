@@ -3,6 +3,7 @@ defmodule Servy.Handler do
 
   alias Servy.Conv
   alias Servy.BearController
+  alias Servy.Tracker
   alias Servy.VideoCam
 
   @pages_path Path.expand("../../pages", __DIR__)
@@ -31,34 +32,17 @@ defmodule Servy.Handler do
     %{conv | status: 200, resp_body: "Awake!"}
   end
 
-  def route(%Conv{method: "GET", path: "/snapshots"} = conv) do
-    parent = self()
-    spawn(fn -> send(parent, {:result, VideoCam.get_snapshot("cam-1")}) end)
-    spawn(fn -> send(parent, {:result, VideoCam.get_snapshot("cam-2")}) end)
-    spawn(fn -> send(parent, {:result, VideoCam.get_snapshot("cam-3")}) end)
+  def route(%Conv{method: "GET", path: "/sensors"} = conv) do
+    task = Task.async(fn -> Tracker.get_location("bigfoot") end)
 
-    snapshot_one =
-      receive do
-        {:result, filename} -> filename
-      end
+    snapshots =
+      ["cam-1", "cam-2", "cam-3"]
+      |> Enum.map(&Task.async(fn -> VideoCam.get_snapshot(&1) end))
+      |> Enum.map(&Task.await(&1))
 
-    snapshot_two =
-      receive do
-        {:result, filename} -> filename
-      end
+    where_is_bigfoot = Task.await(task)
 
-    snapshot_three =
-      receive do
-        {:result, filename} -> filename
-      end
-
-    # pid_one = spawn(fn -> VideoCam.get_snapshot("cam-1") end)
-    # pid_two = VideoCam.get_snapshot("cam-2")
-    # pid_three = VideoCam.get_snapshot("cam-3")
-
-    snapshots = [snapshot_one, snapshot_two, snapshot_three]
-
-    %{conv | status: 200, resp_body: inspect(snapshots)}
+    %{conv | status: 200, resp_body: inspect({snapshots, where_is_bigfoot})}
   end
 
   def route(%Conv{method: "GET", path: "/wildthings"} = conv) do

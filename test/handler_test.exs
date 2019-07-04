@@ -15,12 +15,12 @@ defmodule HandlerTest do
     response = handle(request)
 
     assert response == """
-    HTTP/1.1 200 OK\r
-    Content-Type: text/html\r
-    Content-Length: 20\r
-    \r
-    Bears, Lions, Tigers
-    """
+           HTTP/1.1 200 OK\r
+           Content-Type: text/html\r
+           Content-Length: 20\r
+           \r
+           Bears, Lions, Tigers
+           """
   end
 
   test "GET /bears" do
@@ -40,7 +40,7 @@ defmodule HandlerTest do
     Content-Length: 356\r
     \r
     <h1>All The Bears!</h1>
-    
+
     <ul>
       <li>Brutus - Grizzly</li>
       <li>Iceman - Polar</li>
@@ -70,12 +70,12 @@ defmodule HandlerTest do
     response = handle(request)
 
     assert response == """
-    HTTP/1.1 404 Not Found\r
-    Content-Type: text/html\r
-    Content-Length: 17\r
-    \r
-    No /bigfoot here!
-    """
+           HTTP/1.1 404 Not Found\r
+           Content-Type: text/html\r
+           Content-Length: 17\r
+           \r
+           No /bigfoot here!
+           """
   end
 
   test "GET /bears/1" do
@@ -115,12 +115,12 @@ defmodule HandlerTest do
     response = handle(request)
 
     assert response == """
-    HTTP/1.1 200 OK\r
-    Content-Type: text/html\r
-    Content-Length: 20\r
-    \r
-    Bears, Lions, Tigers
-    """
+           HTTP/1.1 200 OK\r
+           Content-Type: text/html\r
+           Content-Length: 20\r
+           \r
+           Bears, Lions, Tigers
+           """
   end
 
   test "GET /about" do
@@ -143,7 +143,7 @@ defmodule HandlerTest do
 
     <blockquote>
     When we contemplate the whole globe...
-    </blockquote>    
+    </blockquote>
     """
 
     assert remove_whitespace(response) == remove_whitespace(expected_response)
@@ -164,12 +164,12 @@ defmodule HandlerTest do
     response = handle(request)
 
     assert response == """
-    HTTP/1.1 201 Created\r
-    Content-Type: text/html\r
-    Content-Length: 33\r
-    \r
-    Created a Brown bear named Baloo!
-    """
+           HTTP/1.1 201 Created\r
+           Content-Type: text/html\r
+           Content-Length: 33\r
+           \r
+           Created a Brown bear named Baloo!
+           """
   end
 
   test "GET /api/bears" do
@@ -203,8 +203,7 @@ defmodule HandlerTest do
     assert remove_whitespace(response) == remove_whitespace(expected_response)
   end
 
-
   defp remove_whitespace(text) do
     String.replace(text, ~r{\s}, "")
-  end 
+  end
 end
