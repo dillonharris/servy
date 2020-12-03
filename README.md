@@ -11,11 +11,11 @@
 
 ## General things around Elixir and Erlang:
 * #### Processess
-  * They are lightweight and fast to spawn.
-  * They run concurrently, and even in parallel if you have multiple CPU cores
-  * They are isolated from other processes
-  * They don't share anything with other processes
-  * They have their own private mailbox, messages per process
-  * They communicate with other processes only by sending and receiving messages
+  * Are lightweight and fast to spawn.
+  * Run concurrently, and even in parallel if you have multiple CPU cores
+  * Is isolated from other processes
+  * Don't share anything with other processes
+  * Have their own private mailbox, messages per process
+  * Communicate with other processes only by sending and receiving messages
 
 
